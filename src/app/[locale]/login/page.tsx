@@ -1,80 +1,98 @@
 "use client";
 
-import React from 'react';
-import { Form, Input, Button, Checkbox, Typography } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Form, Input, Button, Checkbox, Typography, App, Row, Col } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/navigation';
 import AdminCard from '@/components/common/AdminCard';
+import { useIsMounted } from '@/hooks/useIsMounted';
+import { useAuthFetch } from '@/hooks/useAuthFetch';
+import { useIsAuthenticated } from '@/hooks/useIsAuthenticated';
+import { getCredentials, saveCredentials, clearCredentials } from '@/utils/credentials';
 import styles from './login.module.scss';
 
 const { Title } = Typography;
 
 const LoginPage = () => {
+  const { message } = App.useApp();
   const t = useTranslations('Login');
   const router = useRouter();
-  const [isMounted, setIsMounted] = React.useState(false);
+  const isMounted = useIsMounted();
+  const { authFetch } = useAuthFetch();
+  const { isAuthenticated, isLoading } = useIsAuthenticated();
+  const [form] = Form.useForm();
 
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  // Pre-fill form with saved credentials if available
+  useEffect(() => {
+    if (isMounted) {
+      const savedCredentials = getCredentials();
+      if (savedCredentials) {
+        form.setFieldsValue({
+          email: savedCredentials.email,
+          password: savedCredentials.password,
+          remember: true,
+        });
+      }
+    }
+  }, [isMounted, form]);
 
-  if (!isMounted) return null;
+  useEffect(() => {
+    // Redirect to dashboard if already authenticated (after checking)
+    if (isMounted && isAuthenticated && !isLoading) {
+      router.push('/dashboard');
+    }
+  }, [isMounted, isAuthenticated, isLoading, router]);
 
   const onFinish = async (values: any) => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        router.push('/auth/2fa');
+    const rememberMe = values.remember;
+    const { email, password } = values;
+    
+    const result = await authFetch('/auth/login', { email, password }, rememberMe);
+    if (result) {
+      // Save credentials locally if remember me is checked
+      if (rememberMe) {
+        saveCredentials(email, password);
+        message.success('Login successful! Credentials saved.');
       } else {
-        alert(data.message || 'Login failed');
+        clearCredentials();
+        message.success('Login successful!');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('Connection error');
+      router.push('/auth/2fa');
     }
   };
+
+  if (!isMounted || isLoading) return null;
 
   return (
     <div className={styles.loginWrapper}>
       <AdminCard className={styles.loginCard}>
-        <div className={styles.loginHeader}>
-          <Title level={2}>{t('title')}</Title>
-        </div>
-        <Form
-          name="login"
-          initialValues={{ remember: true }}
-          onFinish={onFinish}
-          size="large"
-        >
-          <Form.Item
-            name="email"
-            rules={[{ required: true, message: 'Please input your Email!' }]}
-          >
-            <Input prefix={<UserOutlined />} placeholder={t('email')} />
+        <Title level={2} className={styles.loginHeader}>{t('title')}</Title>
+        <Form name="login" form={form} initialValues={{ remember: false }} onFinish={onFinish} size="large">
+          <Form.Item name="email" rules={[{ required: true, message: 'Please input your Email!' }]}>
+            <Input 
+              prefix={<UserOutlined />} 
+              placeholder={t('email')}
+              autoComplete="email"
+              type="email"
+            />
           </Form.Item>
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'Please input your Password!' }]}
-          >
-            <Input.Password prefix={<LockOutlined />} placeholder={t('password')} />
+          <Form.Item name="password" rules={[{ required: true, message: 'Please input your Password!' }]}>
+            <Input.Password 
+              prefix={<LockOutlined />} 
+              placeholder={t('password')}
+              autoComplete="current-password"
+            />
           </Form.Item>
           <Form.Item>
-            <Form.Item name="remember" valuePropName="checked" noStyle>
-              <Checkbox>{t('remember_me')}</Checkbox>
-            </Form.Item>
-            <a className={styles.forgotPassword} href="">
-              {t('forgot_password')}
-            </a>
+            <Row justify="space-between" align="middle">
+              <Col>
+                <Form.Item name="remember" valuePropName="checked" noStyle>
+                  <Checkbox>{t('remember_me')}</Checkbox>
+                </Form.Item>
+              </Col>
+            </Row>
           </Form.Item>
-
           <Form.Item>
             <Button type="primary" htmlType="submit" block>
               {t('submit')}

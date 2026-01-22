@@ -2,6 +2,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ConfigProvider, App } from 'antd';
+import { AuthSessionProvider } from '@/components/providers/AuthSessionProvider';
 
 export async function generateMetadata({ params }: { params: Promise<any> }) {
     const { locale } = await params;
@@ -32,9 +33,11 @@ export default async function LocaleLayout({
                 }}
             >
                 <NextIntlClientProvider messages={messages} locale={locale}>
-                    <App>
-                        {children}
-                    </App>
+                    <AuthSessionProvider>
+                        <App>
+                            {children}
+                        </App>
+                    </AuthSessionProvider>
                 </NextIntlClientProvider>
             </ConfigProvider>
         </AntdRegistry>

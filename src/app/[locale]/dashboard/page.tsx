@@ -24,37 +24,36 @@ const { Title } = Typography;
 
 const DashboardPage = () => {
   const t = useTranslations('Dashboard');
-  const [data, setData] = React.useState<any>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [isMounted, setIsMounted] = React.useState(false);
+  const [state, setState] = React.useState<{ data: any; loading: boolean; isMounted: boolean }>({ data: null, loading: true, isMounted: false });
 
   React.useEffect(() => {
-    setIsMounted(true);
-    const fetchData = async () => {
+    setState(prev => ({ ...prev, isMounted: true }));
+    (async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/stats`);
-        const result = await response.json();
-        setData(result);
+        const result = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/stats`).then(r => r.json());
+        setState({ data: result, loading: false, isMounted: true });
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
-      } finally {
-        setLoading(false);
+        setState(prev => ({ ...prev, loading: false }));
       }
-    };
-    fetchData();
+    })();
   }, []);
 
-  const dataSource = data?.recentActivity || [];
-
+  const { data, loading, isMounted } = state;
   const columns = [
     { title: 'Name', dataIndex: 'name', key: 'name' },
     { title: 'Status', dataIndex: 'status', key: 'status' },
     { title: 'Last Login', dataIndex: 'lastLogin', key: 'lastLogin' },
   ];
 
-  if (!isMounted) {
-    return null; 
-  }
+  const statCards = [
+    { key: 'users', title: t('stats.users'), value: data?.stats.users, icon: <UserOutlined /> },
+    { key: 'revenue', title: t('stats.revenue'), value: data?.stats.revenue, icon: <DollarCircleOutlined />, precision: 2, suffix: '$' },
+    { key: 'orders', title: t('stats.orders'), value: data?.stats.orders, icon: <ShoppingCartOutlined /> },
+    { key: 'active', title: t('stats.active'), value: data?.stats.active, icon: <TeamOutlined /> },
+  ];
+
+  if (!isMounted) return null;
 
   return (
     <MainLayout>
@@ -67,44 +66,19 @@ const DashboardPage = () => {
           <Title level={2} className={styles.dashboardHeader}>{t('title')}</Title>
           
           <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12} lg={6}>
-              <AdminCard>
-                <Statistic 
-                  title={t('stats.users')} 
-                  value={data.stats.users} 
-                  prefix={<UserOutlined />} 
-                />
-              </AdminCard>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <AdminCard>
-                <Statistic 
-                  title={t('stats.revenue')} 
-                  value={data.stats.revenue} 
-                  prefix={<DollarCircleOutlined />} 
-                  precision={2}
-                  suffix="$"
-                />
-              </AdminCard>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <AdminCard>
-                <Statistic 
-                  title={t('stats.orders')} 
-                  value={data.stats.orders} 
-                  prefix={<ShoppingCartOutlined />} 
-                />
-              </AdminCard>
-            </Col>
-            <Col xs={24} sm={12} lg={6}>
-              <AdminCard>
-                <Statistic 
-                  title={t('stats.active')} 
-                  value={data.stats.active} 
-                  prefix={<TeamOutlined />} 
-                />
-              </AdminCard>
-            </Col>
+            {statCards.map((card) => (
+              <Col xs={24} sm={12} lg={6} key={card.key}>
+                <AdminCard>
+                  <Statistic 
+                    title={card.title}
+                    value={card.value}
+                    prefix={card.icon}
+                    precision={card.precision}
+                    suffix={card.suffix}
+                  />
+                </AdminCard>
+              </Col>
+            ))}
           </Row>
 
           <Row gutter={[16, 16]} className={styles.mapRow}>
@@ -116,7 +90,7 @@ const DashboardPage = () => {
             <Col xs={24} lg={8}>
               <AdminCard title="Recent Activity">
                 <AdminTable 
-                  dataSource={dataSource} 
+                  dataSource={data?.recentActivity || []} 
                   columns={columns} 
                   pagination={false} 
                   size="small"
