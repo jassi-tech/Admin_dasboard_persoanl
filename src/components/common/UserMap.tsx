@@ -49,7 +49,7 @@ const UserMap = () => {
         fetch(`${API_URL}/locations`)
             .then((res) => res.json())
             .then((data) => setLocations(data))
-            .catch((err) => console.error('Failed to load locations', err));
+            .catch((err) => {});
     }, []);
 
 

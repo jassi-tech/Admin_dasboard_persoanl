@@ -26,12 +26,20 @@ export const projectsApi = {
 
   // Create new project
   create: async (data: Partial<Project>): Promise<void> => {
-    const response = await fetch(`${API_URL}/projects`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Failed to create project');
+    try {
+      const response = await fetch(`${API_URL}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create project: ${response.status} ${errorText}`);
+      }
+    } catch (error) {
+      throw error;
+    }
   },
 
   // Delete project

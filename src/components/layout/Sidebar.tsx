@@ -58,7 +58,7 @@ const Sidebar = () => {
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, { method: 'POST' });
     } catch (error) {
-      console.error('Logout error:', error);
+
     }
     document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     window.location.href = `/${locale}/login`;

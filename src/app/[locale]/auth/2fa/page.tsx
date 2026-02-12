@@ -30,24 +30,43 @@ const TwoFAPage = () => {
       return;
     }
 
+    const email = sessionStorage.getItem('temp_auth_email');
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-2fa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: otp }),
+        body: JSON.stringify({ code: otp, email }), // Send email for user lookup
       });
       
       const data = await response.json();
       
       if (response.ok) {
-        setCookie('auth_token', data.token, { maxAge: 60 * 60 * 24 });
+        setCookie('auth_token', data.token, { 
+          maxAge: 60 * 60 * 24,
+          path: '/',
+          sameSite: 'lax'
+        });
+        // Clean up temp email
+        sessionStorage.removeItem('temp_auth_email');
+        
+        if (data.user) {
+            // Update local profile immediately
+            try {
+                const { saveUserProfile } = require('@/utils/profile');
+                saveUserProfile(data.user);
+            } catch (e) { 
+                console.warn('Failed to save initial profile', e);
+            }
+        }
+
         message.success('Authentication successful!');
         router.push('/dashboard');
       } else {
         message.error(data.message || 'Verification failed');
       }
     } catch (error) {
-      console.error('2FA error:', error);
+
       message.error('Connection error');
     }
   };

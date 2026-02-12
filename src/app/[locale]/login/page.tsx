@@ -48,15 +48,21 @@ const LoginPage = () => {
     const rememberMe = values.remember;
     const { email, password } = values;
     
-    const result = await authFetch('/auth/login', { email, password }, rememberMe);
+    // We pass 'true' to rememberMe here just to trigger the API call, 
+    // but actual token isn't set until 2FA
+    const result = await authFetch('/auth/login', { email, password }, false);
+    
     if (result) {
+      // Save email for 2FA step
+      sessionStorage.setItem('temp_auth_email', email);
+      
       // Save credentials locally if remember me is checked
       if (rememberMe) {
         saveCredentials(email, password);
-        message.success('Login successful! Credentials saved.');
+        message.success('Credentials verified. Proceeding to 2FA...');
       } else {
         clearCredentials();
-        message.success('Login successful!');
+        message.success('Credentials verified.');
       }
       router.push('/auth/2fa');
     }

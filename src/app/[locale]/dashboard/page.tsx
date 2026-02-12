@@ -20,20 +20,26 @@ const UserMap = dynamic(() => import('@/components/common/UserMap'), {
   loading: () => <div className={styles.mapPlaceholder} />
 });
 
-const { Title } = Typography;
+import { getUserProfile } from '@/utils/profile';
+
+const { Title, Text } = Typography;
 
 const DashboardPage = () => {
   const t = useTranslations('Dashboard');
   const [state, setState] = React.useState<{ data: any; loading: boolean; isMounted: boolean }>({ data: null, loading: true, isMounted: false });
+  const [userName, setUserName] = React.useState('Admin');
 
   React.useEffect(() => {
     setState(prev => ({ ...prev, isMounted: true }));
+    const profile = getUserProfile();
+    setUserName(profile.name);
+
     (async () => {
       try {
         const result = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/stats`).then(r => r.json());
         setState({ data: result, loading: false, isMounted: true });
       } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
+        
         setState(prev => ({ ...prev, loading: false }));
       }
     })();
@@ -63,7 +69,10 @@ const DashboardPage = () => {
         <div className={styles.errorWrapper}>Error loading dashboard data</div>
       ) : (
         <>
-          <Title level={2} className={styles.dashboardHeader}>{t('title')}</Title>
+          <div style={{ marginBottom: 24 }}>
+            <Title level={2} className={styles.dashboardHeader}>Welcome back, {userName} 👋</Title>
+            <Text type="secondary">Here's what's happening with your store today.</Text>
+          </div>
           
           <Row gutter={[16, 16]}>
             {statCards.map((card) => (

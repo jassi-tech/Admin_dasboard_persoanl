@@ -15,7 +15,7 @@ export const useProjects = () => {
       setProjects(result);
       setLastSyncTime(new Date());
     } catch (error) {
-      console.error('Failed to fetch projects:', error);
+
       message.error('Failed to load projects');
     } finally {
       setLoading(false);
@@ -27,7 +27,6 @@ export const useProjects = () => {
 
     // Auto-sync every 7 minutes
     const autoSyncInterval = setInterval(() => {
-      console.log('Auto-sync: Refreshing project data...');
       message.info('Auto-syncing project data...', 2);
       fetchProjects();
     }, 420000);
@@ -50,7 +49,7 @@ export const useProjectDetails = (projectId: string | null) => {
       const result = await projectsApi.fetchById(id);
       setProject(result);
     } catch (error) {
-      console.error('Failed to fetch project details:', error);
+
       message.error('Failed to load project details');
     } finally {
       setLoading(false);
@@ -65,7 +64,7 @@ export const useProjectDetails = (projectId: string | null) => {
       if (onSuccess) onSuccess();
       message.success('Project synced successfully!');
     } catch (error) {
-      console.error('Failed to check project status:', error);
+
       message.error('Failed to sync project data');
     } finally {
       setChecking(false);
@@ -78,7 +77,6 @@ export const useProjectDetails = (projectId: string | null) => {
 
       // Auto-sync current project every 7 minutes
       const projectSyncInterval = setInterval(() => {
-        console.log(`Auto-sync: Refreshing project ${projectId}...`);
         checkStatus(projectId);
       }, 420000);
 

@@ -28,7 +28,7 @@ export const decryptCredentials = (encrypted: string): { email: string; password
     
     return { email: credentials.email, password: credentials.password };
   } catch (error) {
-    console.error('Failed to decrypt credentials:', error);
+
     return null;
   }
 };
@@ -38,7 +38,7 @@ export const saveCredentials = (email: string, password: string) => {
     const encrypted = encryptCredentials(email, password);
     localStorage.setItem(STORAGE_KEY, encrypted);
   } catch (error) {
-    console.error('Failed to save credentials:', error);
+
   }
 };
 
@@ -48,7 +48,7 @@ export const getCredentials = (): { email: string; password: string } | null => 
     if (!encrypted) return null;
     return decryptCredentials(encrypted);
   } catch (error) {
-    console.error('Failed to retrieve credentials:', error);
+
     return null;
   }
 };
@@ -57,6 +57,6 @@ export const clearCredentials = () => {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch (error) {
-    console.error('Failed to clear credentials:', error);
+
   }
 };

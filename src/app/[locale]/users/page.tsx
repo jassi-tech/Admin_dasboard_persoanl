@@ -25,7 +25,7 @@ const UsersPage = () => {
             const data = await response.json();
             setUsers(data);
         } catch (error) {
-            console.error('Failed to fetch users:', error);
+
             message.error('Failed to fetch users');
         } finally {
             setLoading(false);
@@ -54,7 +54,7 @@ const UsersPage = () => {
                 message.error(data.message || 'Failed to delete user');
             }
         } catch (error) {
-            console.error('Delete error:', error);
+
             message.error('Connection error');
         }
     };
@@ -128,7 +128,7 @@ const UsersPage = () => {
                 message.error(data.message || 'Failed to add user');
             }
         } catch (error) {
-            console.error('Add user error:', error);
+
             message.error('Connection error');
         }
     };

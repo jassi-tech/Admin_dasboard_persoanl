@@ -34,7 +34,7 @@ export const useAuthFetch = () => {
 
       return result;
     } catch (error) {
-      console.error(`Auth error at ${endpoint}:`, error);
+
       message.error('Connection error');
       return null;
     }

@@ -21,7 +21,7 @@ export const useAutoLogout = () => {
           keepalive: true // Keep connection alive even if page closes
         });
       } catch (error) {
-        console.error('Logout notification failed:', error);
+
       }
 
       // Clear authentication token from cookies
