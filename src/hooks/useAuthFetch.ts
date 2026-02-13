@@ -13,7 +13,10 @@ export const useAuthFetch = () => {
 
   const authFetch = async (endpoint: string, data: any, rememberMe: boolean = false): Promise<AuthResponse | null> => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '') || '';
+      const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      
+      const response = await fetch(`${baseUrl}${cleanEndpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

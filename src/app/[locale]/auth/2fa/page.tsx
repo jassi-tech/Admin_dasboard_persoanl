@@ -33,7 +33,8 @@ const TwoFAPage = () => {
     const email = sessionStorage.getItem('temp_auth_email');
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-2fa`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '') || '';
+      const response = await fetch(`${baseUrl}/auth/verify-2fa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: otp, email }), // Send email for user lookup
