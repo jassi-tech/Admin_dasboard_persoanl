@@ -11,9 +11,16 @@ interface AuthResponse {
 export const useAuthFetch = () => {
   const { message } = App.useApp();
 
-  const authFetch = async (endpoint: string, data: any, rememberMe: boolean = false): Promise<AuthResponse | null> => {
+    const authFetch = async (endpoint: string, data: any, rememberMe: boolean = false): Promise<AuthResponse | null> => {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '') || '';
+      let baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
+      const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+      
+      // Auto-append /api if missing (standard for our production deployments)
+      if (!isDev && baseUrl && !baseUrl.endsWith('/api')) {
+        baseUrl += '/api';
+      }
+
       const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
       
       const response = await fetch(`${baseUrl}${cleanEndpoint}`, {

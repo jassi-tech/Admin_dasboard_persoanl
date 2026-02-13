@@ -33,7 +33,14 @@ const TwoFAPage = () => {
     const email = sessionStorage.getItem('temp_auth_email');
 
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '') || '';
+      let baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
+      const isDev = typeof window !== 'undefined' && window.location.hostname === 'localhost';
+      
+      // Auto-append /api if missing (standard for our production deployments)
+      if (!isDev && baseUrl && !baseUrl.endsWith('/api')) {
+        baseUrl += '/api';
+      }
+
       const response = await fetch(`${baseUrl}/auth/verify-2fa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
