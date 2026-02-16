@@ -11,7 +11,7 @@ const intlMiddleware = createMiddleware({
   localePrefix: 'always'
 });
 
-export default function middleware(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Check if the current path is a public page (ignoring locale)
