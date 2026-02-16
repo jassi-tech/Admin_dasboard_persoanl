@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Typography, Form, Input, Button, App, Tabs, Avatar, Tag, Divider, Descriptions, Switch } from 'antd';
+import { Row, Col, Typography, Form, Input, Button, App, Tabs, Avatar, Tag, Divider, Descriptions, Switch, Modal } from 'antd';
 import { 
   UserOutlined, 
   LockOutlined, 
@@ -126,6 +126,8 @@ const SettingsPage = () => {
         message.success('Account deletion request submitted successfully.');
     };
 
+
+
     const items = [
         {
             key: '1',
@@ -244,6 +246,7 @@ const SettingsPage = () => {
                                     Update Password
                                 </Button>
                             </Form>
+
                         </AdminCard>
                     </Col>
                 </Row>
@@ -321,6 +324,8 @@ const SettingsPage = () => {
                     onConfirm={handleDeleteAccount}
                     itemName="your account"
                 />
+
+
             </div>
         </MainLayout>
     );

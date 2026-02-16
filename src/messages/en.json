@@ -9,7 +9,7 @@
   },
   "TwoFA": {
     "title": "Two-Factor Authentication",
-    "instruction": "Enter the 6-digit code sent to your device",
+    "instruction": "Enter the 6-digit code from your Google Authenticator app",
     "submit": "Verify",
     "resend": "Resend Code"
   },

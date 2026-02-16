@@ -130,7 +130,7 @@ const ProjectsPage = () => {
       dataIndex: 'name',
       key: 'name',
       render: (text: string, record: Project) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <AntdLink href={record.url} target="_blank" style={{ fontSize: '12px' }}>
             {record.url}
           </AntdLink>

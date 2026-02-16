@@ -1,0 +1,65 @@
+.mfaModal {
+    .modalContent {
+        padding: 24px 0;
+    }
+
+    .steps {
+        margin-bottom: 32px;
+    }
+
+    .contentWrapper {
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stepContent {
+        text-align: center;
+        max-width: 500px;
+        width: 100%;
+        padding: 20px;
+
+        .largeIcon {
+            font-size: 64px;
+            color: #1890ff;
+            margin-bottom: 24px;
+        }
+
+        .successIcon {
+            font-size: 72px;
+            color: #52c41a;
+            margin-bottom: 24px;
+        }
+
+        .qrCodeContainer {
+            margin: 24px 0;
+            padding: 20px;
+            background: #fff;
+            border: 2px solid #f0f0f0;
+            border-radius: 8px;
+            display: inline-block;
+
+            .qrCode {
+                width: 240px;
+                height: 240px;
+                display: block;
+            }
+        }
+
+        .codeInput {
+            width: 200px;
+            text-align: center;
+            font-size: 24px;
+            letter-spacing: 8px;
+            font-weight: 600;
+        }
+    }
+
+    .footer {
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #f0f0f0;
+        text-align: right;
+    }
+}

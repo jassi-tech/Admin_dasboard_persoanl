@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import MainLayout from '@/components/layout/MainLayout';
 import AdminCard from '@/components/common/AdminCard';
 import { UserAddOutlined, EditOutlined, DeleteOutlined, LockOutlined, FilterOutlined, ProjectOutlined } from '@ant-design/icons';
+import MFASetupModal from '@/components/mfa/MFASetupModal';
 import styles from './users.module.scss';
 
 const { Title, Text } = Typography;
@@ -20,6 +21,8 @@ const UsersPage = () => {
     const [loading, setLoading] = useState(true);
     const [isMounted, setIsMounted] = useState(false);
     const [form] = Form.useForm();
+    const [isMFAModalOpen, setIsMFAModalOpen] = useState(false);
+    const [pendingUserData, setPendingUserData] = useState<any>(null);
 
     const fetchUsers = async () => {
         try {
@@ -91,12 +94,12 @@ const UsersPage = () => {
             filters: [
                 { text: 'Superadmin', value: 'Superadmin' },
                 { text: 'Admin', value: 'Admin' },
-                { text: 'Editor', value: 'Editor' },
-                { text: 'User', value: 'User' },
+                { text: 'Tester', value: 'Tester' },
+                { text: 'Demo', value: 'Demo' },
             ],
             onFilter: (value: any, record: any) => record.role === value,
             render: (role: string) => (
-                <Tag color={role === 'Superadmin' ? 'red' : role === 'Admin' ? 'gold' : role === 'Editor' ? 'blue' : 'green'}>
+                <Tag color={role === 'Superadmin' ? 'red' : role === 'Admin' ? 'gold' : role === 'Tester' ? 'orange' : role === 'Demo' ? 'purple' : 'blue'}>
                     {role}
                 </Tag>
             )
@@ -171,13 +174,40 @@ const UsersPage = () => {
 
     const onFinish = async (values: any) => {
         try {
+            if (editingUser && !editingUser.id) {
+                message.error('User ID is missing. Please refresh and try again.');
+                return;
+            }
+
+            // If creating a new Superadmin, trigger MFA setup first
+            if (!editingUser && values.role === 'Superadmin') {
+                setPendingUserData(values);
+                setIsMFAModalOpen(true);
+                return;
+            }
+
+            // Normal user creation/update flow
+            await createOrUpdateUser(values);
+        } catch (error) {
+            message.error('Connection error');
+        }
+    };
+
+    const createOrUpdateUser = async (values: any, mfaSecret?: string) => {
+        try {
             const url = editingUser ? `${process.env.NEXT_PUBLIC_API_URL}/users/${editingUser.id}` : `${process.env.NEXT_PUBLIC_API_URL}/users`;
             const method = editingUser ? 'PUT' : 'POST';
+
+            const payload = { ...values };
+            if (mfaSecret) {
+                payload.mfaSecret = mfaSecret;
+                payload.mfaEnabled = true;
+            }
 
             const response = await fetch(url, {
                 method: method,
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(values),
+                body: JSON.stringify(payload),
             });
             const data = await response.json();
             if (response.ok) {
@@ -190,22 +220,40 @@ const UsersPage = () => {
                 message.error(data.message || (editingUser ? 'Failed to update user' : 'Failed to add user'));
             }
         } catch (error) {
-
             message.error('Connection error');
         }
+    };
+
+    const handleMFAComplete = async (mfaSecret: string) => {
+        setIsMFAModalOpen(false);
+        if (pendingUserData) {
+            await createOrUpdateUser(pendingUserData, mfaSecret);
+            setPendingUserData(null);
+        }
+    };
+
+    const handleMFACancel = () => {
+        setIsMFAModalOpen(false);
+        setPendingUserData(null);
+        message.info('Superadmin creation cancelled. MFA setup is required for Superadmin accounts.');
     };
 
     return (
         <MainLayout>
             <div className={styles.usersHeader}>
                 <Title level={2} className={styles.title}>{t('title')}</Title>
-                <Button type="primary" icon={<UserAddOutlined />} onClick={showModal}>
+                <Button type="primary" icon={<UserAddOutlined />} onClick={() => showModal()}>
                     {t('add_user')}
                 </Button>
             </div>
 
             <AdminCard>
-                <Table dataSource={dataSource} columns={columns} pagination={{ pageSize: 10 }} />
+                <Table 
+                    dataSource={dataSource} 
+                    columns={columns} 
+                    pagination={{ pageSize: 10 }} 
+                    rowKey="id" 
+                />
             </AdminCard>
 
             <Modal 
@@ -219,14 +267,14 @@ const UsersPage = () => {
                         <Input />
                     </Form.Item>
                     <Form.Item label="Email" name="email" rules={[{ required: true, type: 'email' }]}>
-                        <Input disabled={!!editingUser} />
+                        <Input />
                     </Form.Item>
                     <Form.Item label="Role" name="role" rules={[{ required: true }]}>
                         <Select options={[
                             { value: 'Superadmin', label: 'Superadmin' },
                             { value: 'Admin', label: 'Admin' },
-                            { value: 'Editor', label: 'Editor' },
-                            { value: 'User', label: 'User' },
+                            { value: 'Tester', label: 'Tester' },
+                            { value: 'Demo', label: 'Demo' },
                         ]} />
                     </Form.Item>
                     <Form.Item 
@@ -254,6 +302,13 @@ const UsersPage = () => {
                     </Form.Item>
                 </Form>
             </Modal>
+
+            <MFASetupModal
+                open={isMFAModalOpen}
+                onCancel={handleMFACancel}
+                onComplete={handleMFAComplete}
+                userEmail={pendingUserData?.email || ''}
+            />
         </MainLayout>
     );
 };
