@@ -1,20 +1,22 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Row, Col, Typography, Table, Tag, Button, Space, Modal, Form, Input, Select, App } from 'antd';
+import { Row, Col, Typography, Table, Tag, Button, Space, Modal, Form, Input, Select, App, Avatar } from 'antd';
 import { useTranslations } from 'next-intl';
 import MainLayout from '@/components/layout/MainLayout';
 import AdminCard from '@/components/common/AdminCard';
-import { UserAddOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { UserAddOutlined, EditOutlined, DeleteOutlined, LockOutlined, FilterOutlined, ProjectOutlined } from '@ant-design/icons';
 import styles from './users.module.scss';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const UsersPage = () => {
     const { message, modal } = App.useApp();
     const t = useTranslations('Users');
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [editingUser, setEditingUser] = useState<any | null>(null);
     const [users, setUsers] = useState<any[]>([]);
+    const [projects, setProjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isMounted, setIsMounted] = useState(false);
     const [form] = Form.useForm();
@@ -32,9 +34,19 @@ const UsersPage = () => {
         }
     };
 
+    const fetchProjects = async () => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/projects`);
+            const data = await response.json();
+            setProjects(data);
+        } catch (error) {
+            console.error('Failed to fetch projects');
+        }
+    };
+
     React.useEffect(() => {
         setIsMounted(true);
-        fetchUsers();
+        Promise.all([fetchUsers(), fetchProjects()]);
     }, []);
 
     if (!isMounted) return null;
@@ -60,24 +72,54 @@ const UsersPage = () => {
     };
 
     const columns = [
-        { title: 'Name', dataIndex: 'name', key: 'name' },
+        { 
+            title: 'Name', 
+            dataIndex: 'name', 
+            key: 'name',
+            render: (text: string, record: any) => (
+                <Space>
+                    <Avatar src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${record.email}`} />
+                    <Text strong>{text}</Text>
+                </Space>
+            )
+        },
         { title: 'Email', dataIndex: 'email', key: 'email' },
         { 
             title: 'Role', 
             dataIndex: 'role', 
             key: 'role',
+            filters: [
+                { text: 'Superadmin', value: 'Superadmin' },
+                { text: 'Admin', value: 'Admin' },
+                { text: 'Editor', value: 'Editor' },
+                { text: 'User', value: 'User' },
+            ],
+            onFilter: (value: any, record: any) => record.role === value,
             render: (role: string) => (
-                <Tag color={role === 'Admin' ? 'gold' : role === 'Editor' ? 'blue' : 'green'}>
+                <Tag color={role === 'Superadmin' ? 'red' : role === 'Admin' ? 'gold' : role === 'Editor' ? 'blue' : 'green'}>
                     {role}
                 </Tag>
             )
+        },
+        {
+            title: 'Project',
+            dataIndex: 'projectId',
+            key: 'project',
+            render: (projectId: string) => {
+                const project = projects.find(p => p.id === projectId);
+                return (
+                    <Tag icon={<ProjectOutlined />} color="cyan">
+                        {project ? project.name : 'Test'}
+                    </Tag>
+                );
+            }
         },
         { 
             title: 'Status', 
             dataIndex: 'status', 
             key: 'status',
             render: (status: string) => (
-                <Tag color={status === 'Active' ? 'success' : 'error'}>
+                <Tag color={status === 'Active' ? 'success' : 'error'} variant="filled">
                     {status}
                 </Tag>
             )
@@ -87,16 +129,21 @@ const UsersPage = () => {
             key: 'action',
             render: (_: any, record: any) => (
                 <Space size="middle">
-                    <Button type="text" icon={<EditOutlined />} />
+                    <Button 
+                        type="text" 
+                        icon={<EditOutlined />} 
+                        onClick={() => showModal(record)} 
+                    />
                     <Button 
                         type="text" 
                         danger 
                         icon={<DeleteOutlined />} 
+                        disabled={record.role === 'Superadmin'}
                         onClick={() => {
                             modal.confirm({
                                 title: 'Are you sure you want to delete this user?',
                                 content: `User: ${record.name}`,
-                                onOk: () => handleDelete(record.key),
+                                onOk: () => handleDelete(record.id),
                             });
                         }} 
                     />
@@ -105,27 +152,42 @@ const UsersPage = () => {
         },
     ];
 
-    const showModal = () => setIsModalVisible(true);
+    const showModal = (user?: any) => {
+        if (user) {
+            setEditingUser(user);
+            form.setFieldsValue(user);
+        } else {
+            setEditingUser(null);
+            form.resetFields();
+        }
+        setIsModalVisible(true);
+    };
+
     const handleCancel = () => {
         setIsModalVisible(false);
+        setEditingUser(null);
         form.resetFields();
     };
 
     const onFinish = async (values: any) => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
-                method: 'POST',
+            const url = editingUser ? `${process.env.NEXT_PUBLIC_API_URL}/users/${editingUser.id}` : `${process.env.NEXT_PUBLIC_API_URL}/users`;
+            const method = editingUser ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(values),
             });
             const data = await response.json();
             if (response.ok) {
-                message.success('User added successfully!');
+                message.success(editingUser ? 'User updated successfully!' : 'User added successfully!');
                 setIsModalVisible(false);
+                setEditingUser(null);
                 form.resetFields();
                 fetchUsers();
             } else {
-                message.error(data.message || 'Failed to add user');
+                message.error(data.message || (editingUser ? 'Failed to update user' : 'Failed to add user'));
             }
         } catch (error) {
 
@@ -147,7 +209,7 @@ const UsersPage = () => {
             </AdminCard>
 
             <Modal 
-                title={t('add_user')} 
+                title={editingUser ? 'Edit User' : t('add_user')} 
                 open={isModalVisible} 
                 onCancel={handleCancel}
                 footer={null}
@@ -157,14 +219,32 @@ const UsersPage = () => {
                         <Input />
                     </Form.Item>
                     <Form.Item label="Email" name="email" rules={[{ required: true, type: 'email' }]}>
-                        <Input />
+                        <Input disabled={!!editingUser} />
                     </Form.Item>
                     <Form.Item label="Role" name="role" rules={[{ required: true }]}>
                         <Select options={[
+                            { value: 'Superadmin', label: 'Superadmin' },
                             { value: 'Admin', label: 'Admin' },
                             { value: 'Editor', label: 'Editor' },
                             { value: 'User', label: 'User' },
                         ]} />
+                    </Form.Item>
+                    <Form.Item 
+                        label="Password" 
+                        name="password" 
+                        rules={[{ required: !editingUser, min: 6 }]}
+                        help={editingUser ? "Leave blank to keep current password" : ""}
+                    >
+                        <Input.Password prefix={<LockOutlined />} placeholder={editingUser ? "New password (optional)" : "Enter password"} />
+                    </Form.Item>
+                    <Form.Item label="Project" name="projectId">
+                        <Select 
+                            placeholder="Select project (Optional)"
+                            options={[
+                                { value: '', label: 'Test' },
+                                ...projects.map(p => ({ value: p.id, label: p.name }))
+                            ]} 
+                        />
                     </Form.Item>
                     <Form.Item>
                         <Space className={styles.modalFooter}>

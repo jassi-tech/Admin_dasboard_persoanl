@@ -65,6 +65,9 @@ const LoginPage = () => {
         message.success('Credentials verified.');
       }
       router.push('/auth/2fa');
+    } else {
+      // Clear fields on failure for security/UX as requested
+      form.resetFields(['email', 'password']);
     }
   };
 

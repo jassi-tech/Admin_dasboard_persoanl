@@ -11,12 +11,14 @@ import {
   SafetyOutlined,
   CheckCircleOutlined,
   DeleteOutlined,
-  CameraOutlined
+  CameraOutlined,
+  ExclamationCircleOutlined
 } from '@ant-design/icons';
 import { useTranslations } from 'next-intl';
 import MainLayout from '@/components/layout/MainLayout';
 import AdminCard from '@/components/common/AdminCard';
-import { getUserProfile, saveUserProfile } from '@/utils/profile';
+import { getUserProfile, saveUserProfile, UserProfile } from '@/utils/profile';
+import DeleteSecurityModal from '@/components/common/DeleteSecurityModal';
 import styles from './settings.module.scss';
 
 const { Title, Text } = Typography;
@@ -26,7 +28,8 @@ const SettingsPage = () => {
     const t = useTranslations('Settings'); // Make sure translations exist or fallback
     const [loading, setLoading] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
-    const [currentUser, setCurrentUser] = useState<{ id?: string; email: string; name: string; bio?: string } | null>(null);
+    const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
@@ -117,6 +120,11 @@ const SettingsPage = () => {
             setLoading(false);
         }
     };
+    
+    const handleDeleteAccount = () => {
+        setIsDeleteModalOpen(false);
+        message.success('Account deletion request submitted successfully.');
+    };
 
     const items = [
         {
@@ -150,7 +158,9 @@ const SettingsPage = () => {
                                 <Title level={3} style={{ marginBottom: 4 }}>{currentUser?.name || "Admin User"}</Title>
                                 <Text type="secondary">{currentUser?.email || "admin@example.com"}</Text>
                                 <div style={{ marginTop: 16 }}>
-                                    <Tag color="blue">Administrator</Tag>
+                                    <Tag color={currentUser?.role === 'Superadmin' ? 'red' : 'blue'}>
+                                        {currentUser?.role || 'Administrator'}
+                                    </Tag>
                                     <Tag color="green">Verified</Tag>
                                 </div>
                             </div>
@@ -284,9 +294,33 @@ const SettingsPage = () => {
                         <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
                             Irreversible actions. Please be certain.
                         </Text>
-                        <Button danger icon={<DeleteOutlined />}>Delete Account</Button>
+                        
+                        {(currentUser?.role === 'Superadmin' || currentUser?.role === 'Admin' || currentUser?.role === 'Administrator') ? (
+                            <div style={{ padding: '12px', background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: '4px', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                                <ExclamationCircleOutlined style={{ color: '#ff4d4f', marginTop: '4px' }} />
+                                <Text type="danger">
+                                    {currentUser?.role} accounts cannot be deleted directly for security reasons. 
+                                    Please contact another Superadmin or transfer ownership first.
+                                </Text>
+                            </div>
+                        ) : (
+                            <Button 
+                                danger 
+                                icon={<DeleteOutlined />}
+                                onClick={() => setIsDeleteModalOpen(true)}
+                            >
+                                Delete Account
+                            </Button>
+                        )}
                     </AdminCard>
                 </div>
+
+                <DeleteSecurityModal
+                    open={isDeleteModalOpen}
+                    onCancel={() => setIsDeleteModalOpen(false)}
+                    onConfirm={handleDeleteAccount}
+                    itemName="your account"
+                />
             </div>
         </MainLayout>
     );
