@@ -3,6 +3,7 @@
 import React from 'react';
 import { Layout, Button, Select, Grid, Drawer, Avatar, Space, Typography } from 'antd';
 import Sidebar, { SidebarContent } from './Sidebar';
+import { clearAllSessionData } from '@/utils/credentials';
 import { useRouter, usePathname } from '@/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { UserOutlined, MenuOutlined } from '@ant-design/icons';
@@ -35,6 +36,10 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, { method: 'POST' });
     } catch (error) {}
+    
+    // Clear all session data on explicit logout
+    clearAllSessionData(false);
+    
     document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     window.location.href = `/${locale}/login`;
   };
@@ -94,7 +99,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         placement="left"
         onClose={() => setDrawerVisible(false)}
         open={drawerVisible}
-        width={260}
+        size="default"
         styles={{ body: { padding: 0 }, header: { display: 'none' } }}
         className={styles.mobileDrawer}
       >

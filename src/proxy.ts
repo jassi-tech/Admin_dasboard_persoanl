@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const locales = ['en', 'hi'];
-const publicPages = ['/login', '/auth/2fa'];
+const publicPages = ['/login', '/auth/2fa', '/auth/reset-password', '/forgot-password'];
 
 const intlMiddleware = createMiddleware({
   locales,

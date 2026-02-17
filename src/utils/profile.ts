@@ -52,6 +52,14 @@ export const saveUserProfile = (profile: Partial<UserProfile>) => {
     return updated;
   } catch (error) {
     console.warn('Failed to save profile', error);
-    return null;
+  }
+};
+
+export const clearUserProfile = () => {
+  try {
+    localStorage.removeItem(PROFILE_KEY);
+    window.dispatchEvent(new Event('profileUpdated'));
+  } catch (error) {
+    console.warn('Failed to clear profile', error);
   }
 };

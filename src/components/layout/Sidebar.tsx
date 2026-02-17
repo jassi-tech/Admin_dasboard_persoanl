@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/navigation';
+import { clearAllSessionData } from '@/utils/credentials';
 import styles from './Sidebar.module.scss';
 
 const { Sider } = Layout;
@@ -87,6 +88,9 @@ const Sidebar = () => {
     } catch (error) {
 
     }
+    // Clear all session data on explicit logout
+    clearAllSessionData(false);
+    
     document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     window.location.href = `/${locale}/login`;
   };

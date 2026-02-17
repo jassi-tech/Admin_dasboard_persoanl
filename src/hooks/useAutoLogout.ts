@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useRouter } from '@/navigation';
 import { useLocale } from 'next-intl';
 import { App } from 'antd';
+import { clearAllSessionData } from '@/utils/credentials';
 
 /**
  * Hook to handle auto logout when browser tab is closed
@@ -16,7 +17,7 @@ export const useAutoLogout = () => {
     const handleLogout = async () => {
       try {
         // Attempt to notify backend of logout (may not complete due to browser close)
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, { 
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
           method: 'POST',
           keepalive: true // Keep connection alive even if page closes
         });
@@ -25,13 +26,16 @@ export const useAutoLogout = () => {
       }
 
       // Clear authentication token from cookies
-      document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      document.cookie = "remember_me=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-      
+      // document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      // document.cookie = "remember_me=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+
+      // Clear session data but preserve Remember Me credentials
+      clearAllSessionData(true);
+
       // Clear local storage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('__secure_auth_v1__');
-      }
+      // if (typeof window !== 'undefined') {
+      //   localStorage.removeItem('__secure_auth_v1__');
+      // }
     };
 
     // Handle tab/window closure

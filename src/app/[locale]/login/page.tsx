@@ -4,12 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, Checkbox, Typography, App, Row, Col } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useTranslations } from 'next-intl';
-import { useRouter } from '@/navigation';
+import { useRouter, Link } from '@/navigation';
 import AdminCard from '@/components/common/AdminCard';
 import { useIsMounted } from '@/hooks/useIsMounted';
 import { useAuthFetch } from '@/hooks/useAuthFetch';
 import { useIsAuthenticated } from '@/hooks/useIsAuthenticated';
-import { getCredentials, saveCredentials, clearCredentials } from '@/utils/credentials';
+import { getCredentials, saveCredentials, clearAllSessionData } from '@/utils/credentials';
 import styles from './login.module.scss';
 
 const { Title } = Typography;
@@ -61,7 +61,7 @@ const LoginPage = () => {
         saveCredentials(email, password);
         message.success('Credentials verified. Proceeding to 2FA...');
       } else {
-        clearCredentials();
+        clearAllSessionData(false);
         message.success('Credentials verified.');
       }
       router.push('/auth/2fa');
@@ -71,7 +71,15 @@ const LoginPage = () => {
     }
   };
 
-  if (!isMounted || isLoading) return null;
+  if (!isMounted || isLoading) {
+    return (
+      <div className={styles.loginWrapper}>
+        <AdminCard className={styles.loginCard} loading={true}>
+          <div style={{ height: '300px' }} />
+        </AdminCard>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.loginWrapper}>
@@ -99,6 +107,11 @@ const LoginPage = () => {
                 <Form.Item name="remember" valuePropName="checked" noStyle>
                   <Checkbox>{t('remember_me')}</Checkbox>
                 </Form.Item>
+              </Col>
+              <Col>
+                <Link href="/auth/forgot-password" className={styles.forgotPassword}>
+                  Forgot Password?
+                </Link>
               </Col>
             </Row>
           </Form.Item>
