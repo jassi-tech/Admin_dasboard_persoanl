@@ -15,13 +15,7 @@ import styles from './Sidebar.module.scss';
 
 const { Sider } = Layout;
 
-const Sidebar = () => {
-  const t = useTranslations('Sidebar');
-  const locale = useLocale();
-  const pathname = usePathname();
-  const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
-
+export const SidebarContent = ({ collapsed, t, locale, pathname, onMenuClick }: any) => {
   const topMenuItems = [
     {
       key: '/dashboard',
@@ -54,6 +48,39 @@ const Sidebar = () => {
     },
   ];
 
+  return (
+    <div className={styles.sidebarWrapper}>
+      <div className={`${styles.sidebarLogo} ${collapsed ? styles.collapsed : ''}`}>
+        <div className={styles.logoIcon}>A</div>
+        <span className={styles.logoText}>ADMIN PANEL</span>
+      </div>
+      
+      <Menu 
+        theme="dark" 
+        selectedKeys={[pathname]} 
+        mode="inline" 
+        items={topMenuItems}
+        className={styles.topMenu}
+      />
+      
+      <Menu 
+        theme="dark" 
+        selectable={false}
+        mode="inline" 
+        items={bottomMenuItems} 
+        onClick={onMenuClick}
+        className={styles.bottomMenu}
+      />
+    </div>
+  );
+};
+
+const Sidebar = () => {
+  const t = useTranslations('Sidebar');
+  const locale = useLocale();
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
+
   const handleLogout = async () => {
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, { method: 'POST' });
@@ -80,29 +107,13 @@ const Sidebar = () => {
       width={260}
       className={styles.sidebarSider}
     >
-      <div className={styles.sidebarWrapper}>
-        <div className={`${styles.sidebarLogo} ${collapsed ? styles.collapsed : ''}`}>
-          <div className={styles.logoIcon}>A</div>
-          <span className={styles.logoText}>ADMIN PANEL</span>
-        </div>
-        
-        <Menu 
-          theme="dark" 
-          selectedKeys={[pathname]} 
-          mode="inline" 
-          items={topMenuItems}
-          className={styles.topMenu}
-        />
-        
-        <Menu 
-          theme="dark" 
-          selectable={false}
-          mode="inline" 
-          items={bottomMenuItems} 
-          onClick={handleMenuClick}
-          className={styles.bottomMenu}
-        />
-      </div>
+      <SidebarContent 
+        collapsed={collapsed}
+        t={t}
+        locale={locale}
+        pathname={pathname}
+        onMenuClick={handleMenuClick}
+      />
     </Sider>
   );
 };

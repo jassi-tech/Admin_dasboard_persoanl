@@ -1,5 +1,5 @@
-import React from 'react';
-import { Row, Col, Typography, Tag, Space } from 'antd';
+import React, { useState } from 'react';
+import { Row, Col, Typography, Tag, Space, Select } from 'antd';
 import { 
   CheckCircleOutlined, 
   CloseCircleOutlined,
@@ -9,43 +9,84 @@ import {
   HistoryOutlined,
   ProjectOutlined,
   BellOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  RocketOutlined,
+  CodeOutlined
 } from '@ant-design/icons';
 import AdminCard from '@/components/common/AdminCard';
-import { Project } from '@/app/[locale]/projects/types';
+import { Project, ProjectStage } from '@/app/[locale]/projects/types';
 import styles from '@/app/[locale]/projects/projects.module.scss';
 
 const { Title, Text } = Typography;
+const { Option } = Select;
 
 interface ProjectDetailsContentProps {
   project: Project;
   t: any;
+  onUpdate?: (updates: Partial<Project>) => void;
+  updating?: boolean;
 }
 
-export const ProjectDetailsContent: React.FC<ProjectDetailsContentProps> = ({ project, t }) => {
+export const ProjectDetailsContent: React.FC<ProjectDetailsContentProps> = ({ 
+  project, 
+  t, 
+  onUpdate,
+  updating 
+}) => {
+  const handleStageChange = (value: ProjectStage) => {
+    if (onUpdate) onUpdate({ stage: value });
+  };
+
+  const handleStatusChange = (value: string) => {
+    if (onUpdate) onUpdate({ status: value });
+  };
+
   return (
     <Row gutter={[16, 16]}>
       {/* Status Section */}
       <Col xs={24} lg={12}>
         <AdminCard title={t('status.title')}>
           <div className={styles.statusSection}>
-            {project.isLive ? (
-              <>
+            <div className={styles.editableStatusRow}>
+              {project.isLive ? (
                 <CheckCircleOutlined className={styles.mainIcon} style={{ color: '#52c41a' }} />
-                <Title level={3} className={styles.statusTitle} style={{ color: '#52c41a' }}>
-                  {t('status.live')}
-                </Title>
-                <Tag color="success" className={styles.statusTag}>{project.status}</Tag>
-              </>
-            ) : (
-              <>
+              ) : (
                 <CloseCircleOutlined className={styles.mainIcon} style={{ color: '#ff4d4f' }} />
-                <Title level={3} className={styles.statusTitle} style={{ color: '#ff4d4f' }}>
-                  {t('status.issue')}
-                </Title>
-                <Tag color="error" className={styles.statusTag}>{project.status}</Tag>
-              </>
-            )}
+              )}
+              
+              <div className={styles.statusSelectionGroup}>
+                <div className={styles.selectLabel}>{t('columns.status')}</div>
+                <Select 
+                  value={project.status} 
+                  onChange={handleStatusChange}
+                  loading={updating}
+                  style={{ width: '100%', maxWidth: '200px' }}
+                  className={styles.statusSelect}
+                >
+                  <Option value="Stable">{t('filters.stable')}</Option>
+                  <Option value="Needs Attention">{t('filters.issue')}</Option>
+                  <Option value="Degraded">Degraded</Option>
+                </Select>
+              </div>
+
+              <div className={styles.statusSelectionGroup}>
+                <div className={styles.selectLabel}>Project Stage</div>
+                <Select 
+                  value={project.stage || 'Production'} 
+                  onChange={handleStageChange}
+                  loading={updating}
+                  style={{ width: '100%', maxWidth: '200px' }}
+                  className={styles.stageSelect}
+                >
+                  <Option value="Demo">
+                    <Space><CodeOutlined /> Demo</Space>
+                  </Option>
+                  <Option value="Production">
+                    <Space><RocketOutlined /> Production</Space>
+                  </Option>
+                </Select>
+              </div>
+            </div>
             
             <div className={styles.analysisBox}>
               <Space>

@@ -6,13 +6,24 @@
     @media (max-width: $screen-sm) {
         font-size: 1.5rem !important;
         margin-bottom: $spacing-md;
+        text-align: center;
+    }
+}
+
+.dashboardSubHeader {
+    @media (max-width: $screen-sm) {
+        text-align: center;
+        display: block;
+        margin-bottom: $spacing-lg;
     }
 }
 
 .loadingWrapper,
 .errorWrapper {
-    padding: 50px;
-    text-align: center;
+    height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .mapRow {
@@ -24,9 +35,13 @@
 }
 
 .mapPlaceholder {
-    height: 400px;
+    height: 450px;
     background: $background-color;
     border-radius: $spacing-sm;
+
+    @media (max-width: $screen-lg) {
+        height: 400px;
+    }
 
     @media (max-width: $screen-sm) {
         height: 300px;

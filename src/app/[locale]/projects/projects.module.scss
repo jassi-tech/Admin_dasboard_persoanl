@@ -9,40 +9,106 @@
     flex-wrap: wrap;
     gap: $spacing-md;
 
-    @media (max-width: $screen-sm) {
+    @media (max-width: $screen-md) {
       flex-direction: column;
-      align-items: flex-start;
-      gap: 12px;
-
-      :global(.ant-space) {
-        width: 100%;
-        justify-content: space-between;
-      }
+      align-items: stretch;
+      gap: $spacing-md;
     }
 
     .title {
       margin: 0 !important;
 
-      @media (max-width: $screen-sm) {
+      @media (max-width: $screen-md) {
         font-size: 1.5rem !important;
+        text-align: center;
+      }
+    }
+
+    .headerSpace {
+      @media (max-width: $screen-md) {
+        width: 100%;
+        display: flex !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px !important;
+
+        >div,
+        button {
+          flex: 1;
+          min-width: 140px;
+        }
+
+        :global(.ant-radio-group) {
+          display: flex;
+          width: 100%;
+          justify-content: center;
+
+          label {
+            flex: 1;
+            text-align: center;
+          }
+        }
+      }
+
+      @media (max-width: $screen-xs) {
+        flex-direction: column;
+
+        >div,
+        button {
+          width: 100%;
+        }
       }
     }
   }
 
+  // Status Colors
+  $color-live: #52c41a;
+  $color-issue: #ff4d4f;
+  $color-stable: #1890ff;
+
+  // High-end professional styling
   .projectCard {
-    border-radius: 16px !important;
-    border: none !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06) !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
     height: 100%;
-    display: flex;
-    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1) !important;
+    overflow: hidden;
+    background: #ffffff !important;
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08) !important;
+      border-color: rgba(24, 144, 255, 0.2) !important;
+    }
 
     :global(.ant-card-body) {
-      flex: 1;
-      padding: $spacing-lg;
+      padding: 0 !important;
+      height: 100%;
+    }
 
-      @media (max-width: $screen-sm) {
-        padding: $spacing-md;
+    // Status Accent Bar
+    &.statusLive {
+      border-top: 4px solid $color-live !important;
+
+      .statusBg {
+        background: rgba($color-live, 0.03);
+      }
+    }
+
+    &.statusIssue {
+      border-top: 4px solid $color-issue !important;
+
+      .statusBg {
+        background: rgba($color-issue, 0.03);
+      }
+    }
+
+    &.statusStable {
+      border-top: 4px solid $color-stable !important;
+
+      .statusBg {
+        background: rgba($color-stable, 0.03);
       }
     }
 
@@ -50,69 +116,102 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      justify-content: space-between;
+      padding: $spacing-lg;
+
+      @media (max-width: $screen-sm) {
+        padding: $spacing-md;
+      }
+
+      .urlLink {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 12px;
+        font-size: 0.85rem;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+
+        &:hover {
+          opacity: 1;
+        }
+
+        a {
+          color: #1890ff;
+          font-weight: 500;
+        }
+      }
 
       .cardTitleRow {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 12px;
+        align-items: center;
+        margin-bottom: 16px;
 
         .cardTitle {
           margin: 0 !important;
+          font-weight: 700 !important;
+          font-size: 1.4rem !important;
+          letter-spacing: -0.5px;
+          color: #1a1a1a;
           cursor: pointer;
-          flex: 1;
-          margin-right: $spacing-sm !important;
-          font-size: 1.25rem !important;
 
-          @media (max-width: $screen-sm) {
-            font-size: 1.1rem !important;
+          &:hover {
+            color: #1890ff;
           }
         }
 
         .statusTag {
           margin: 0;
-          border-radius: $spacing-sm;
+          padding: 2px 10px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 11px;
+          text-transform: uppercase;
         }
-      }
-
-      .urlLink {
-        display: block;
-        margin-bottom: $spacing-md;
-        font-size: 0.9rem;
       }
 
       .tagContainer {
         display: flex;
-        flex-wrap: wrap;
-        gap: $spacing-sm;
-        margin-bottom: $spacing-lg;
+        gap: 8px;
+        margin-bottom: 24px;
 
-        .countryTag {
-          border-radius: $spacing-xs;
-          background: #f0f5ff;
-          border: 1px solid #adc6ff;
-        }
-
+        .countryTag,
         .deploymentTag {
-          border-radius: $spacing-xs;
+          border-radius: 10px;
+          padding: 2px 12px;
+          background: #f5f7fa;
+          border: 1px solid #eef1f6;
+          color: #595959;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
       }
 
       .cardFooter {
+        margin-top: auto;
+        padding-top: 20px;
         border-top: 1px solid #f0f0f0;
-        padding-top: $spacing-md;
         display: flex;
         justify-content: space-between;
         align-items: center;
 
         .statusInfo {
           .statusLabel {
-            font-size: 0.85rem;
+            font-size: 0.75rem;
+            color: #8c8c8c;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
           }
 
           .statusValue {
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #262626;
           }
         }
       }
@@ -171,9 +270,38 @@
     text-align: center;
     padding: $spacing-lg 0;
 
+    .editableStatusRow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 32px;
+      margin-bottom: $spacing-lg;
+      padding: 0 20px;
+
+      @media (max-width: $screen-sm) {
+        flex-direction: column;
+        gap: 20px;
+      }
+    }
+
+    .statusSelectionGroup {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .selectLabel {
+      font-size: 0.75rem;
+      color: #8c8c8c;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
     .mainIcon {
       font-size: 80px;
-      margin-bottom: $spacing-md;
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 
       @media (max-width: $screen-sm) {

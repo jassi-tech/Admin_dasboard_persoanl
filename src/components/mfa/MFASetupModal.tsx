@@ -268,7 +268,7 @@ const MFASetupModal: React.FC<MFASetupModalProps> = ({ open, onCancel, onComplet
             footer={null}
             width={600}
             className={styles.mfaModal}
-            maskClosable={false}
+            mask={{ closable: false }}
         >
             <div className={styles.modalContent}>
                 <Steps current={currentStep} items={steps} className={styles.steps} />

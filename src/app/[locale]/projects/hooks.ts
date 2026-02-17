@@ -81,6 +81,8 @@ export const useProjectDetails = (projectId: string | null) => {
       }, 420000);
 
       return () => clearInterval(projectSyncInterval);
+    } else {
+      setProject(null);
     }
   }, [projectId]);
 

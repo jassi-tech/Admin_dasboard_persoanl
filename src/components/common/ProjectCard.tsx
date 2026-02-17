@@ -25,48 +25,55 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
   onDelete,
   t 
 }) => {
-  return (
-    <Card hoverable className={styles.projectCard}>
-      <div className={styles.cardContent}>
-        <div>
-          <Text 
-            ellipsis={{ tooltip: project.url }} 
-            className={styles.urlLink}
-            style={{ marginBottom: '4px', display: 'block' }}
-          >
-            <AntdLink href={project.url} target="_blank">
-              <LinkOutlined /> {project.url}
-            </AntdLink>
-          </Text>
+  // Determine status class
+  const getStatusClass = () => {
+    if (!project.isLive) return styles.statusIssue;
+    if (project.status.toLowerCase() === 'stable') return styles.statusStable;
+    return styles.statusLive;
+  };
 
-          <div className={styles.cardTitleRow}>
-            <Title 
-              level={4} 
-              ellipsis={{ tooltip: project.name }} 
-              className={styles.cardTitle}
-              onClick={() => onView(project.id)}
-            >
-              {project.name}
-            </Title>
-            <Tag color={project.isLive ? 'green' : 'red'} className={styles.statusTag}>
-              {project.isLive ? t('status.live') : t('status.issue')}
-            </Tag>
-          </div>
-          
-          <div className={styles.tagContainer}>
-            <Tag icon={<GlobalOutlined />} className={styles.countryTag}>
-              {project.country}
-            </Tag>
-            <Tag color="blue" icon={<CloudUploadOutlined />} className={styles.deploymentTag}>
-              {project.deployments}
-            </Tag>
-          </div>
+  return (
+    <Card 
+      hoverable 
+      className={`${styles.projectCard} ${getStatusClass()}`}
+    >
+      <div className={styles.cardContent}>
+        <div className={styles.urlLink}>
+          <AntdLink href={project.url} target="_blank">
+            <LinkOutlined /> {project.url}
+          </AntdLink>
+        </div>
+
+        <div className={styles.cardTitleRow}>
+          <Title 
+            level={4} 
+            className={styles.cardTitle}
+            onClick={() => onView(project.id)}
+          >
+            {project.name}
+          </Title>
+          <Tag color={project.isLive ? 'success' : 'error'} className={styles.statusTag}>
+            {project.isLive ? t('status.live') : t('status.issue')}
+          </Tag>
+        </div>
+        
+        <div className={styles.tagContainer}>
+          <Tooltip title={t('status.country')}>
+            <div className={styles.countryTag}>
+              <GlobalOutlined /> {project.country}
+            </div>
+          </Tooltip>
+          <Tooltip title={t('status.deployments')}>
+            <div className={styles.deploymentTag}>
+              <CloudUploadOutlined /> {project.deployments}
+            </div>
+          </Tooltip>
         </div>
 
         <div className={styles.cardFooter}>
           <div className={styles.statusInfo}>
-            <Text type="secondary" className={styles.statusLabel}>
-              {t('status.stable')}
+            <Text className={styles.statusLabel}>
+              {t('columns.status')}
             </Text>
             <div className={styles.statusValue}>{project.status}</div>
           </div>
@@ -75,7 +82,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               <Button 
                 type="text" 
                 shape="circle"
-                icon={<EyeOutlined style={{ fontSize: '18px', color: '#1890ff' }} />} 
+                icon={<EyeOutlined style={{ fontSize: '20px', color: '#1890ff' }} />} 
                 onClick={() => onView(project.id)} 
               />
             </Tooltip>
@@ -84,7 +91,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
                 type="text" 
                 shape="circle"
                 danger 
-                icon={<DeleteOutlined style={{ fontSize: '18px' }} />} 
+                icon={<DeleteOutlined style={{ fontSize: '20px' }} />} 
                 onClick={() => onDelete(project.id, project.name)} 
               />
             </Tooltip>

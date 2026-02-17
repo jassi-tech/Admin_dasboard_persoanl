@@ -42,6 +42,17 @@ export const projectsApi = {
     }
   },
 
+  // Update project
+  update: async (id: string, data: Partial<Project>): Promise<Project> => {
+    const response = await fetch(`${API_URL}/projects/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error('Failed to update project');
+    return response.json();
+  },
+
   // Delete project
   delete: async (id: string): Promise<void> => {
     const response = await fetch(`${API_URL}/projects/${id}`, {

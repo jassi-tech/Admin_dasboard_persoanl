@@ -71,7 +71,7 @@ const DashboardPage = () => {
         <>
           <div style={{ marginBottom: 24 }}>
             <Title level={2} className={styles.dashboardHeader}>Welcome back, {userName} 👋</Title>
-            <Text type="secondary">Here's what's happening with your store today.</Text>
+            <Text type="secondary" className={styles.dashboardSubHeader}>Here's what's happening with your store today.</Text>
           </div>
           
           <Row gutter={[16, 16]}>

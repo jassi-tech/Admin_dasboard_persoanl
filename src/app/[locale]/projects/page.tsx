@@ -6,30 +6,22 @@ import {
   ReloadOutlined,
   LinkOutlined,
   ArrowLeftOutlined,
-  AppstoreOutlined,
-  TableOutlined,
-  EyeOutlined,
-  PlusOutlined,
-  DeleteOutlined,
-  GlobalOutlined,
-  CloudUploadOutlined
 } from '@ant-design/icons';
 import { useTranslations } from 'next-intl';
 import MainLayout from '@/components/layout/MainLayout';
 import AdminCard from '@/components/common/AdminCard';
 import AdminTable from '@/components/common/AdminTable';
-import DeleteSecurityModal from '@/components/common/DeleteSecurityModal';
-import SecurityGateModal from '@/components/common/SecurityGateModal';
 import { ProjectCard } from '@/components/common/ProjectCard';
 import { ProjectDetailsContent } from '@/components/common/ProjectDetailsContent';
 import { CredentialsSection } from '@/components/common/CredentialsSection';
 import { useProjects, useProjectDetails } from './hooks';
 import { projectsApi } from './api';
 import { Project, ViewType, StatusFilter } from './types';
+import { ProjectHeader } from './components/ProjectHeader';
+import { ProjectModals } from './components/ProjectModals';
 import styles from './projects.module.scss';
 
 const { Title, Text, Link: AntdLink } = Typography;
-const { Option } = Select;
 
 const ProjectsPage = () => {
   const { message } = App.useApp();
@@ -66,7 +58,8 @@ const ProjectsPage = () => {
     setIsDetailsUnlocked(false);
   };
 
-  const handleBackToList = () => {
+  const handleBackToList = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     setSelectedProjectId(null);
   };
 
@@ -86,6 +79,22 @@ const ProjectsPage = () => {
       fetchProjects();
     } catch (error: any) {
       message.error(`Failed to add website: ${error.message}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleUpdateProject = async (updates: Partial<Project>) => {
+    if (!selectedProjectId) return;
+    
+    setSubmitting(true);
+    try {
+      await projectsApi.update(selectedProjectId, updates);
+      message.success('Project updated successfully');
+      fetchProjects(); // Refresh list
+      // Refresh details - useProjectDetails handles this if selectedProject changes
+    } catch (error: any) {
+      message.error(`Failed to update project: ${error.message}`);
     } finally {
       setSubmitting(false);
     }
@@ -142,21 +151,21 @@ const ProjectsPage = () => {
       title: t('status.country'),
       dataIndex: 'country',
       key: 'country',
-      render: (text: string) => <Tag icon={<GlobalOutlined />}>{text}</Tag>
+      render: (text: string) => <Tag>{text}</Tag>
     },
     {
       title: t('status.deployments'),
       dataIndex: 'deployments',
       key: 'deployments',
-      render: (text: number) => <Tag color="blue" icon={<CloudUploadOutlined />}>{text}</Tag>
+      render: (text: number) => <Tag color="blue">{text}</Tag>
     },
     {
       title: t('columns.status'),
       dataIndex: 'status',
       key: 'status',
       render: (status: string, record: Project) => (
-        <Tag color={record.isLive ? 'green' : 'red'}>
-          {record.isLive ? t('status.live') : t('status.issue')} ({status})
+        <Tag color={record.isLive ? 'success' : 'error'}>
+          {status}
         </Tag>
       )
     },
@@ -168,76 +177,44 @@ const ProjectsPage = () => {
           <Button 
             type="primary" 
             ghost 
-            icon={<EyeOutlined />} 
             onClick={() => handleViewProject(record.id)}
           >
             {t('details_btn')}
           </Button>
           <Button 
             danger 
-            icon={<DeleteOutlined />} 
             onClick={() => handleDelete(record.id, record.name, false)}
-          />
+          >
+            {t('delete_btn')}
+          </Button>
         </Space>
       )
     }
   ];
 
   // Render Project List View
-  if (!selectedProject) {
+  if (!selectedProjectId || !selectedProject) {
     return (
       <MainLayout>
         {loading ? (
-          <div style={{ padding: '50px', textAlign: 'center' }}>Loading...</div>
+          <div className={styles.loadingContainer}>Loading...</div>
         ) : projects.length === 0 ? (
-          <div style={{ padding: '50px', textAlign: 'center' }} className={styles.projectsContainer}>
+          <div className={styles.loadingContainer}>
             <Title level={4}>No projects found</Title>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
+            <Button type="primary" onClick={() => setIsModalVisible(true)}>
               {t('add_project')}
             </Button>
           </div>
         ) : (
           <div className={styles.projectsContainer}>
-            <div className={styles.headerActions}>
-              <Title level={2} className={styles.title}>{t('title')}</Title>
-              
-              <Space size="middle">
-                <Button 
-                  type="primary" 
-                  icon={<PlusOutlined />} 
-                  onClick={() => setIsModalVisible(true)}
-                >
-                  {t('add_project')}
-                </Button>
-
-                <Select 
-                  defaultValue="all" 
-                  style={{ width: 150 }} 
-                  onChange={(value) => setStatusFilter(value as StatusFilter)}
-                >
-                  <Option value="all">{t('filters.all')}</Option>
-                  <Option value="stable">{t('filters.stable')}</Option>
-                  <Option value="issue">{t('filters.issue')}</Option>
-                </Select>
-
-                <Radio.Group 
-                  value={viewType} 
-                  onChange={(e) => setViewType(e.target.value)}
-                  buttonStyle="solid"
-                >
-                  <Radio.Button value="card">
-                    <Tooltip title={t('view.card')}>
-                      <AppstoreOutlined />
-                    </Tooltip>
-                  </Radio.Button>
-                  <Radio.Button value="table">
-                    <Tooltip title={t('view.table')}>
-                      <TableOutlined />
-                    </Tooltip>
-                  </Radio.Button>
-                </Radio.Group>
-              </Space>
-            </div>
+            <ProjectHeader 
+              t={t}
+              viewType={viewType}
+              setViewType={setViewType}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              setIsModalVisible={setIsModalVisible}
+            />
 
             {viewType === 'card' ? (
               <Row gutter={[24, 24]} align="stretch">
@@ -262,61 +239,24 @@ const ProjectsPage = () => {
               </AdminCard>
             )}
 
-            {/* Add Project Modal */}
-            <Modal
-              title={t('modal.title')}
-              open={isModalVisible}
-              onCancel={() => {
-                setIsModalVisible(false);
-                form.resetFields();
+            <ProjectModals 
+              t={t}
+              isAddModalVisible={isModalVisible}
+              setIsAddModalVisible={setIsModalVisible}
+              form={form}
+              submitting={submitting}
+              onAddProject={handleAddProject}
+              deleteModalVisible={deleteModalVisible}
+              setDeleteModalVisible={setDeleteModalVisible}
+              confirmDelete={confirmDelete}
+              projectToDelete={projectToDelete}
+              secureModalVisible={secureModalVisible}
+              setSecureModalVisible={setSecureModalVisible}
+              onSecuritySuccess={() => {
+                setSecureModalVisible(false);
+                setIsDetailsUnlocked(true);
               }}
-              footer={null}
-            >
-              <Form form={form} layout="vertical" onFinish={handleAddProject}>
-                <Form.Item
-                  label={t('modal.name')}
-                  name="name"
-                  rules={[{ required: true, message: 'Please enter website name' }]}
-                >
-                  <Input placeholder="e.g. My Awesome Website" />
-                </Form.Item>
-                <Form.Item
-                  label={t('modal.url')}
-                  name="url"
-                  rules={[
-                    { required: true, message: 'Please enter website URL' },
-                    { type: 'url', message: 'Please enter a valid URL' }
-                  ]}
-                >
-                  <Input placeholder="https://example.com" />
-                </Form.Item>
-                <Form.Item
-                  label={t('status.country')}
-                  name="country"
-                  rules={[{ required: true, message: 'Please enter hosting country' }]}
-                >
-                  <Input placeholder="e.g. United States, India" />
-                </Form.Item>
-                <Form.Item className={styles.modalFooter}>
-                  <Space>
-                    <Button onClick={() => setIsModalVisible(false)}>
-                      {t('modal.cancel')}
-                    </Button>
-                    <Button type="primary" htmlType="submit" loading={submitting}>
-                      {t('modal.submit')}
-                    </Button>
-                  </Space>
-                </Form.Item>
-              </Form>
-            </Modal>
-
-            {/* Delete Modal */}
-            <DeleteSecurityModal
-              open={deleteModalVisible}
-              onCancel={() => setDeleteModalVisible(false)}
-              onConfirm={confirmDelete}
-              itemName={projectToDelete?.name || ''}
-              loading={submitting}
+              selectedProject={null} // Not needed for add/delete
             />
           </div>
         )}
@@ -329,7 +269,7 @@ const ProjectsPage = () => {
     <MainLayout>
       <div className={styles.projectsContainer}>
         <Breadcrumb 
-          style={{ marginBottom: '16px' }}
+          className={styles.breadcrumbSpacing}
           items={[
             {
               title: (
@@ -342,8 +282,8 @@ const ProjectsPage = () => {
           ]}
         />
 
-        <div style={{ marginBottom: '16px' }}>
-          <AntdLink href={selectedProject.url} target="_blank" style={{ fontSize: '1rem' }}>
+        <div className={styles.urlLinkSpacing}>
+          <AntdLink href={selectedProject.url} target="_blank" className={styles.urlLinkText}>
             <LinkOutlined /> {selectedProject.url}
           </AntdLink>
         </div>
@@ -352,7 +292,7 @@ const ProjectsPage = () => {
           <div>
             <Title level={2} className={styles.title}>{selectedProject.name}</Title>
             {lastSyncTime && (
-              <Text type="secondary" style={{ fontSize: '0.85rem' }}>
+              <Text type="secondary" className={styles.syncInfoText}>
                 Last synced: {lastSyncTime.toLocaleTimeString()} • Auto-sync: Every 7 min
               </Text>
             )}
@@ -360,7 +300,6 @@ const ProjectsPage = () => {
           <Space>
             <Button 
               danger 
-              icon={<DeleteOutlined />} 
               onClick={() => handleDelete(selectedProject.id, selectedProject.name, true)}
             >
               {t('delete_btn')}
@@ -376,7 +315,12 @@ const ProjectsPage = () => {
           </Space>
         </div>
         
-        <ProjectDetailsContent project={selectedProject} t={t} />
+        <ProjectDetailsContent 
+          project={selectedProject} 
+          t={t} 
+          onUpdate={handleUpdateProject}
+          updating={submitting}
+        />
 
         <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
           <Col span={24}>
@@ -389,26 +333,24 @@ const ProjectsPage = () => {
           </Col>
         </Row>
 
-        {/* Delete Modal */}
-        <DeleteSecurityModal
-          open={deleteModalVisible}
-          onCancel={() => setDeleteModalVisible(false)}
-          onConfirm={confirmDelete}
-          itemName={projectToDelete?.name || ''}
-          loading={submitting}
-        />
-
-        {/* Security Gate Modal */}
-        <SecurityGateModal
-          open={secureModalVisible}
-          onCancel={() => setSecureModalVisible(false)}
-          onSuccess={() => {
+        <ProjectModals 
+          t={t}
+          isAddModalVisible={false}
+          setIsAddModalVisible={() => {}}
+          form={form}
+          submitting={submitting}
+          onAddProject={() => {}}
+          deleteModalVisible={deleteModalVisible}
+          setDeleteModalVisible={setDeleteModalVisible}
+          confirmDelete={confirmDelete}
+          projectToDelete={projectToDelete}
+          secureModalVisible={secureModalVisible}
+          setSecureModalVisible={setSecureModalVisible}
+          onSecuritySuccess={() => {
             setSecureModalVisible(false);
             setIsDetailsUnlocked(true);
           }}
-          title="Admin Access Required"
-          description={`Please enter your 6-digit security OTP to view sensitive credentials for ${selectedProject.name}.`}
-          actionText="Unlock Details"
+          selectedProject={selectedProject}
         />
       </div>
     </MainLayout>
