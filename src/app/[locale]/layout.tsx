@@ -25,21 +25,21 @@ export default async function LocaleLayout({
 
     return (
         <AntdRegistry>
-            <ConfigProvider
-                theme={{
-                    token: {
-                        colorPrimary: '#1890ff',
-                    },
-                }}
-            >
-                <NextIntlClientProvider messages={messages} locale={locale}>
+            <NextIntlClientProvider messages={messages} locale={locale}>
+                <ConfigProvider
+                    theme={{
+                        token: {
+                            colorPrimary: '#1890ff',
+                        },
+                    }}
+                >
                     <AuthSessionProvider>
                         <App>
                             {children}
                         </App>
                     </AuthSessionProvider>
-                </NextIntlClientProvider>
-            </ConfigProvider>
+                </ConfigProvider>
+            </NextIntlClientProvider>
         </AntdRegistry>
     );
 }

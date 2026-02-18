@@ -5,7 +5,7 @@ import { Form, Input, Button, Typography, App, Row, Col } from 'antd';
 import { MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useRouter } from '@/navigation';
 import AdminCard from '@/components/common/AdminCard';
-import styles from '../login/login.module.scss';
+import styles from '../../login/login.module.scss';
 
 const { Title, Text } = Typography;
 
