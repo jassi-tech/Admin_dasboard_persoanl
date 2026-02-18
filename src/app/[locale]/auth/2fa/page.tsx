@@ -92,9 +92,6 @@ const TwoFAPage = () => {
         <Button type="primary" block size="large" onClick={handleVerify}>
           {t('submit')}
         </Button>
-        <Button type="link" className={styles.resendButton}>
-          {t('resend')}
-        </Button>
       </AdminCard>
     </div>
   );

@@ -23,6 +23,8 @@ const LoginPage = () => {
   const { isAuthenticated, isLoading } = useIsAuthenticated();
   const [form] = Form.useForm();
 
+  const [submitting, setSubmitting] = useState(false);
+
   // Pre-fill form with saved credentials if available
   useEffect(() => {
     if (isMounted) {
@@ -45,29 +47,34 @@ const LoginPage = () => {
   }, [isMounted, isAuthenticated, isLoading, router]);
 
   const onFinish = async (values: any) => {
+    setSubmitting(true);
     const rememberMe = values.remember;
     const { email, password } = values;
     
-    // We pass 'true' to rememberMe here just to trigger the API call, 
-    // but actual token isn't set until 2FA
-    const result = await authFetch('/auth/login', { email, password }, false);
-    
-    if (result) {
-      // Save email for 2FA step
-      sessionStorage.setItem('temp_auth_email', email);
+    try {
+      // We pass 'true' to rememberMe here just to trigger the API call, 
+      // but actual token isn't set until 2FA
+      const result = await authFetch('/auth/login', { email, password }, false);
       
-      // Save credentials locally if remember me is checked
-      if (rememberMe) {
-        saveCredentials(email, password);
-        message.success('Credentials verified. Proceeding to 2FA...');
+      if (result) {
+        // Save email for 2FA step
+        sessionStorage.setItem('temp_auth_email', email);
+        
+        // Save credentials locally if remember me is checked
+        if (rememberMe) {
+          saveCredentials(email, password);
+          message.success('Credentials verified. Proceeding to 2FA...');
+        } else {
+          clearAllSessionData(false);
+          message.success('Credentials verified.');
+        }
+        router.push('/auth/2fa');
       } else {
-        clearAllSessionData(false);
-        message.success('Credentials verified.');
+        // Clear fields on failure for security/UX as requested
+        form.resetFields(['email', 'password']);
       }
-      router.push('/auth/2fa');
-    } else {
-      // Clear fields on failure for security/UX as requested
-      form.resetFields(['email', 'password']);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -116,7 +123,7 @@ const LoginPage = () => {
             </Row>
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
+            <Button type="primary" htmlType="submit" block loading={submitting}>
               {t('submit')}
             </Button>
           </Form.Item>

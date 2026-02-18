@@ -31,6 +31,8 @@ export default async function LocaleLayout({
                         token: {
                             colorPrimary: '#1890ff',
                         },
+                        cssVar: { key: 'app' },
+                        hashed: false,
                     }}
                 >
                     <AuthSessionProvider>

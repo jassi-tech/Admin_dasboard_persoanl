@@ -68,7 +68,24 @@ const DashboardPage = () => {
   const { data, loading, isMounted } = state;
   const columns = [
     { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'Status', dataIndex: 'status', key: 'status' },
+    { 
+      title: 'Status', 
+      dataIndex: 'status', 
+      key: 'status',
+      render: (status: string, record: any) => {
+        if (record.timestamp) {
+          const localTime = new Date(record.timestamp).toLocaleTimeString([], { 
+            hour: 'numeric', 
+            minute: '2-digit', 
+            hour12: true 
+          });
+          // Avoid double time if backend already sent it (for backward compatibility during migration)
+          const baseStatus = status.includes('(') ? status.split('(')[0].trim() : status;
+          return `${baseStatus} (${localTime})`;
+        }
+        return status;
+      }
+    },
     { title: 'Last Login', dataIndex: 'lastLogin', key: 'lastLogin' },
   ];
 

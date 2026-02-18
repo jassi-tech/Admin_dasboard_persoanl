@@ -11,7 +11,7 @@
 
 .twofaCard {
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
     text-align: center;
 }
 
@@ -25,8 +25,4 @@
             gap: $spacing-sm !important;
         }
     }
-}
-
-.resendButton {
-    margin-top: $spacing-md;
 }
