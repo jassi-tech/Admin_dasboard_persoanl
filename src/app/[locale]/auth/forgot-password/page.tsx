@@ -14,7 +14,6 @@ const ForgotPasswordPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const [debugLink, setDebugLink] = useState('');
 
   const onFinish = async (values: { email: string }) => {
     setLoading(true);
@@ -29,9 +28,6 @@ const ForgotPasswordPage = () => {
       
       if (response.ok) {
         setEmailSent(true);
-        if (data.debug_link) {
-          setDebugLink(data.debug_link);
-        }
         message.success(data.message);
       } else {
         message.error(data.message || 'Failed to send reset link');
@@ -88,14 +84,6 @@ const ForgotPasswordPage = () => {
             <Text type="secondary">
               If an account exists for that email, we've sent instructions to reset your password.
             </Text>
-            
-            {debugLink && (
-              <div style={{ marginTop: 24, padding: 16, background: '#f5f5f5', borderRadius: 8 }}>
-                <Text strong>Testing Reset Link:</Text>
-                <br />
-                <a href={debugLink}>{debugLink}</a>
-              </div>
-            )}
             
             <Button 
               type="primary" 
