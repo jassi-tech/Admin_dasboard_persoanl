@@ -29,6 +29,26 @@ const DashboardPage = () => {
   const [state, setState] = React.useState<{ data: any; loading: boolean; isMounted: boolean }>({ data: null, loading: true, isMounted: false });
   const [userName, setUserName] = React.useState('Admin');
 
+  const updatePrecisionLocation = async () => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      try {
+        const { latitude, longitude } = position.coords;
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/locations/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat: latitude, lon: longitude })
+        });
+        // Refresh dashboard data to show new marker
+        const result = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/stats`).then(r => r.json());
+        setState(prev => ({ ...prev, data: result }));
+      } catch (error) {
+        console.error('Failed to update precision location', error);
+      }
+    });
+  };
+
   React.useEffect(() => {
     setState(prev => ({ ...prev, isMounted: true }));
     const profile = getUserProfile();
@@ -69,9 +89,27 @@ const DashboardPage = () => {
         <div className={styles.errorWrapper}>Error loading dashboard data</div>
       ) : (
         <>
-          <div style={{ marginBottom: 24 }}>
-            <Title level={2} className={styles.dashboardHeader}>Welcome back, {userName} 👋</Title>
-            <Text type="secondary" className={styles.dashboardSubHeader}>Here's what's happening with your store today.</Text>
+          <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <div>
+              <Title level={2} className={styles.dashboardHeader}>Welcome back, {userName} 👋</Title>
+              <Text type="secondary" className={styles.dashboardSubHeader}>Here's what's happening with your store today.</Text>
+            </div>
+            <button 
+              onClick={updatePrecisionLocation}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                color: 'white',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                backdropFilter: 'blur(10px)',
+                marginBottom: '8px'
+              }}
+            >
+              📍 Refine Map Location
+            </button>
           </div>
           
           <Row gutter={[16, 16]}>

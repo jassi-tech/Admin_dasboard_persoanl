@@ -8,6 +8,7 @@ import {
   SettingOutlined,
   LogoutOutlined,
   ProjectOutlined,
+  ShoppingCartOutlined,
 } from '@ant-design/icons';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/navigation';
@@ -27,6 +28,11 @@ export const SidebarContent = ({ collapsed, t, locale, pathname, onMenuClick }: 
       key: '/users',
       icon: <UserOutlined />,
       label: <Link href="/users">{t('users')}</Link>,
+    },
+    {
+      key: '/orders',
+      icon: <ShoppingCartOutlined />,
+      label: <Link href="/orders">{t('orders')}</Link>,
     },
     {
       key: '/projects',

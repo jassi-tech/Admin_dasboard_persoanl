@@ -26,6 +26,7 @@ export const useAuthFetch = () => {
       const response = await fetch(`${baseUrl}${cleanEndpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(data),
       });
       

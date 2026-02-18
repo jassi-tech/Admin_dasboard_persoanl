@@ -69,7 +69,7 @@ const TwoFAPage = () => {
         }
 
         message.success('Authentication successful!');
-        router.push('/dashboard');
+        router.push('/auth/success');
       } else {
         message.error(data.message || 'Verification failed');
       }

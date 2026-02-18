@@ -28,6 +28,7 @@
   "Sidebar": {
     "dashboard": "Dashboard",
     "users": "Users",
+    "orders": "Orders",
     "settings": "Settings",
     "projects": "Projects",
     "logout": "Logout"
